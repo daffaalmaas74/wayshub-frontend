@@ -10,7 +10,7 @@ pipeline{
 		sshagent([secret]){
 			sh """ssh -o StrictHostKeyChecking=no ${server} << EOF
 			cd ${directory}
-			git pull origin ${master}
+			git pull origin ${branch}
 			exit
 			EOF"""
 		}
