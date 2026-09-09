@@ -71,7 +71,7 @@ pipeline {
             discordSend(
                 webhookURL: DISCORD_WEBHOOK,
                 title: "Jenkins Build SUCCESS",
-                description: "wayshub-frontend berhasil di-build dan deploy.",
+                description: "wayshub-frontend berhasil di-build & deploy.",
                 result: "SUCCESS"
             )
         }
@@ -82,7 +82,7 @@ pipeline {
             discordSend(
                 webhookURL: DISCORD_WEBHOOK,
                 title: "Jenkins Build FAILED",
-                description: "wayshub-frontend gagal di-build atau deploy.",
+                description: "wayshub-frontend gagal di-build & deploy.",
                 result: "FAILURE"
             )
         }
