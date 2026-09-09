@@ -65,4 +65,23 @@ pipeline {
             }
         }
     }
+    post {
+    success {
+        discordSend(
+            webhookURL: credentials('discord-webhook'),
+            title: "Jenkins Build SUCCESS",
+            description: "wayshub-frontend berhasil di-build dan deploy.",
+            result: "SUCCESS"
+        )
+    }
+
+    failure {
+        discordSend(
+            webhookURL: credentials('discord-webhook'),
+            title: "Jenkins Build FAILED",
+            description: "wayshub-frontend gagal di-build atau deploy.",
+            result: "FAILURE"
+        )
+    }
+}
 }
