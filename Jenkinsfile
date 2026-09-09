@@ -1,4 +1,4 @@
-def secret = 'daffaalmaas'
+def secret = 'server-frontend'
 def server = 'daffaalmaas@20.211.26.186'
 def directory = 'wayshub-frontend'
 def branch = 'master'
