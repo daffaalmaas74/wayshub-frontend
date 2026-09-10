@@ -1,20 +1,20 @@
-def secret = 'server-frontend'
-def server = 'daffaalmaas@20.211.26.186'
-def directory = 'wayshub-frontend'
-def branch = 'master'
-
 pipeline {
     agent any
+
+    environment {
+        FRONTEND_SERVER    = credentials('ip-frontend-server')
+        FRONTEND_DIRECTORY = credentials('directory-frontend')
+    }
 
     stages {
 
         stage('pull code baru') {
             steps {
-                sshagent([secret]) {
+                sshagent(['server-frontend']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${server} << EOF
-                        cd ${directory}
-                        git pull origin ${branch}
+                        ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
+                        cd ${FRONTEND_DIRECTORY}
+                        git pull origin master
                         exit
                         EOF
                     """
@@ -24,10 +24,10 @@ pipeline {
 
         stage('build aplikasi') {
             steps {
-                sshagent([secret]) {
+                sshagent(['server-frontend']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${server} << EOF
-                        cd ${directory}
+                        ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
+                        cd ${FRONTEND_DIRECTORY}
                         docker compose build
                         exit
                         EOF
@@ -38,10 +38,10 @@ pipeline {
 
         stage('push ke registry') {
             steps {
-                sshagent([secret]) {
+                sshagent(['server-frontend']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${server} << EOF
-                        cd ${directory}
+                        ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
+                        cd ${FRONTEND_DIRECTORY}
                         docker compose push
                         exit
                         EOF
@@ -52,10 +52,10 @@ pipeline {
 
         stage('deploy') {
             steps {
-                sshagent([secret]) {
+                sshagent(['server-frontend']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ${server} << EOF
-                        cd ${directory}
+                        ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
+                        cd ${FRONTEND_DIRECTORY}
                         docker compose down
                         docker compose up -d
                         exit
@@ -65,27 +65,36 @@ pipeline {
             }
         }
     }
-   post {
-    success {
-        withCredentials([string(credentialsId: 'discord-webhook', variable: 'DISCORD_WEBHOOK')]) {
-            discordSend(
-                webhookURL: DISCORD_WEBHOOK,
-                title: "Jenkins Build SUCCESS",
-                description: "wayshub-frontend berhasil di-build & deploy.",
-                result: "SUCCESS"
-            )
-        }
-    }
 
-    failure {
-        withCredentials([string(credentialsId: 'discord-webhook', variable: 'DISCORD_WEBHOOK')]) {
-            discordSend(
-                webhookURL: DISCORD_WEBHOOK,
-                title: "Jenkins Build FAILED",
-                description: "wayshub-frontend gagal di-build & deploy.",
-                result: "FAILURE"
-            )
+    post {
+        success {
+            withCredentials([
+                string(
+                    credentialsId: 'discord-webhook',
+                    variable: 'DISCORD_WEBHOOK'
+                )
+            ]) {
+                discordSend(
+                    webhookURL: DISCORD_WEBHOOK,
+                    title: "Jenkins Build SUCCESS",
+                    description: "wayshub-frontend berhasil di-build & deploy.",
+                    result: "SUCCESS"
+                )
+            }
+        }
+
+        failure {
+            withCredentials([
+                string(
+                    credentialsId: 'discord-webhook',
+                    variable: 'DISCORD_WEBHOOK'
+                )
+            ]) {
+                discordSend(
+                    webhookURL: DISCORD_WEBHOOK,
+                    variable: 'DISCORD_WEBHOOK'
+                )
+            }
         }
     }
-}
 }
