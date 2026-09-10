@@ -1,8 +1,14 @@
 services:
   frontend:
-    image: daffaalmaas74/wayshub-frontend:latest
+    image: daffaalmaas74/wayshub-frontend:development
     build: .
     container_name: wayshub-frontend
     ports:
       - "3000:3000"
     restart: unless-stopped
+    networks:
+      - daffaalmaas
+
+networks:
+  daffaalmaas:
+    external: true
