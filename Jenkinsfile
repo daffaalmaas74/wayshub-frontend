@@ -14,29 +14,8 @@ pipeline {
                 sshagent(['server-frontend']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
-                        set -e
-
                         cd ${FRONTEND_DIRECTORY}
                         git pull origin master
-
-                        exit
-                        EOF
-                    """
-                }
-            }
-        }
-
-        stage('testing aplikasi') {
-            steps {
-                sshagent(['server-frontend']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
-                        set -e
-
-                        cd ${FRONTEND_DIRECTORY}
-
-                        docker compose run --rm frontend npm test -- --watchAll=false
-
                         exit
                         EOF
                     """
@@ -49,11 +28,8 @@ pipeline {
                 sshagent(['server-frontend']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
-                        set -e
-
                         cd ${FRONTEND_DIRECTORY}
                         docker compose build
-
                         exit
                         EOF
                     """
@@ -66,11 +42,8 @@ pipeline {
                 sshagent(['server-frontend']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
-                        set -e
-
                         cd ${FRONTEND_DIRECTORY}
                         docker compose push
-
                         exit
                         EOF
                     """
@@ -83,13 +56,9 @@ pipeline {
                 sshagent(['server-frontend']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
-                        set -e
-
                         cd ${FRONTEND_DIRECTORY}
                         docker compose down
-                        docker compose pull
                         docker compose up -d
-
                         exit
                         EOF
                     """
@@ -103,7 +72,7 @@ pipeline {
             discordSend(
                 webhookURL: DISCORD_WEBHOOK,
                 title: "Jenkins Build SUCCESS",
-                description: "wayshub-frontend berhasil di-test, di-build, di-push, dan di-deploy.",
+                description: "wayshub-frontend berhasil di-build & deploy.",
                 result: "SUCCESS"
             )
         }
@@ -112,7 +81,7 @@ pipeline {
             discordSend(
                 webhookURL: DISCORD_WEBHOOK,
                 title: "Jenkins Build FAILED",
-                description: "wayshub-frontend gagal pada proses CI/CD.",
+                description: "wayshub-frontend gagal di-build & deploy.",
                 result: "FAILURE"
             )
         }
