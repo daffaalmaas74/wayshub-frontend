@@ -4,6 +4,7 @@ pipeline {
     environment {
         FRONTEND_SERVER    = credentials('ip-frontend-server')
         FRONTEND_DIRECTORY = credentials('directory-frontend')
+        DISCORD_WEBHOOK    = credentials('discord-webhook')
     }
 
     stages {
@@ -68,33 +69,21 @@ pipeline {
 
     post {
         success {
-            withCredentials([
-                string(
-                    credentialsId: 'discord-webhook',
-                    variable: 'DISCORD_WEBHOOK'
-                )
-            ]) {
-                discordSend(
-                    webhookURL: DISCORD_WEBHOOK,
-                    title: "Jenkins Build SUCCESS",
-                    description: "wayshub-frontend berhasil di-build & deploy.",
-                    result: "SUCCESS"
-                )
-            }
+            discordSend(
+                webhookURL: DISCORD_WEBHOOK,
+                title: "Jenkins Build SUCCESS",
+                description: "wayshub-frontend berhasil di-build & deploy.",
+                result: "SUCCESS"
+            )
         }
 
         failure {
-            withCredentials([
-                string(
-                    credentialsId: 'discord-webhook',
-                    variable: 'DISCORD_WEBHOOK'
-                )
-            ]) {
-                discordSend(
-                    webhookURL: DISCORD_WEBHOOK,
-                    variable: 'DISCORD_WEBHOOK'
-                )
-            }
+            discordSend(
+                webhookURL: DISCORD_WEBHOOK,
+                title: "Jenkins Build FAILED",
+                description: "wayshub-frontend gagal di-build & deploy.",
+                result: "FAILURE"
+            )
         }
     }
 }
