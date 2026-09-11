@@ -44,21 +44,25 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
                         cd ${FRONTEND_DIRECTORY}
 
+                        docker compose down
+
                         docker run --rm -d \\
                             --name frontend-testing \\
-                            -p 3001:3000 \\
+                            -p 3000:3000 \\
                             daffaalmaas74/wayshub-frontend:development
+
+                        if [ \$? -ne 0 ]; then
+                            exit 1
+                        fi
 
                         sleep 10
 
                         if wget --spider --timeout=10 http://localhost:3000; then
-                            :
+                            docker stop frontend-testing
                         else
                             docker stop frontend-testing || true
                             exit 1
                         fi
-
-                        docker stop frontend-testing
 
                         exit
                         EOF
