@@ -13,14 +13,11 @@ pipeline {
             steps {
                 sshagent(['server-frontend']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" << EOF
-                        set -e
-
-                        cd "$FRONTEND_DIRECTORY"
-
-                        git pull origin master
-
-                        EOF
+                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
+                            set -e
+                            cd '$FRONTEND_DIRECTORY'
+                            git pull origin master
+                        "
                     '''
                 }
             }
@@ -30,16 +27,14 @@ pipeline {
             steps {
                 sshagent(['server-frontend']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" << EOF
-                        set -e
+                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
+                            set -e
+                            cd '$FRONTEND_DIRECTORY'
 
-                        cd "$FRONTEND_DIRECTORY"
-
-                        docker build \
-                            -t daffaalmaas74/wayshub-frontend:testing \
-                            .
-
-                        EOF
+                            docker build \
+                                -t daffaalmaas74/wayshub-frontend:testing \
+                                .
+                        "
                     '''
                 }
             }
@@ -49,61 +44,59 @@ pipeline {
             steps {
                 sshagent(['server-frontend']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" << EOF
-                        set -e
+                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
+                            set -e
+                            cd '$FRONTEND_DIRECTORY'
 
-                        cd "$FRONTEND_DIRECTORY"
+                            docker compose down
 
-                        docker compose down
+                            docker rm -f frontend-testing 2>/dev/null || true
 
-                        docker rm -f frontend-testing 2>/dev/null || true
+                            docker run -d \
+                                --name frontend-testing \
+                                --network daffaalmaas \
+                                -p 3000:3000 \
+                                daffaalmaas74/wayshub-frontend:testing
 
-                        docker run -d \
-                            --name frontend-testing \
-                            --network daffaalmaas \
-                            -p 3000:3000 \
-                            daffaalmaas74/wayshub-frontend:testing
+                            sleep 15
 
-                        sleep 15
-
-                        HTTP_CODE=\$(curl \
-                            --max-time 10 \
-                            -s \
-                            -o /dev/null \
-                            -w "%{http_code}" \
-                            http://localhost:3000 || true)
-
-                        if [ "\$HTTP_CODE" -ge 100 ] && [ "\$HTTP_CODE" -lt 500 ]; then
-
-                            docker stop frontend-testing
-                            docker rm frontend-testing
-
-                        else
-
-                            docker logs frontend-testing || true
-
-                            docker stop frontend-testing || true
-                            docker rm frontend-testing || true
-
-                            docker compose up -d --no-build
-
-                            sleep 10
-
-                            OLD_HTTP_CODE=\$(curl \
+                            HTTP_CODE=\\$(curl \
                                 --max-time 10 \
                                 -s \
                                 -o /dev/null \
-                                -w "%{http_code}" \
+                                -w '%{http_code}' \
                                 http://localhost:3000 || true)
 
-                            if [ "\$OLD_HTTP_CODE" -lt 100 ] || [ "\$OLD_HTTP_CODE" -ge 500 ]; then
-                                docker logs wayshub-frontend || true
+                            if [ \\\"\\$HTTP_CODE\\\" -ge 100 ] && [ \\\"\\$HTTP_CODE\\\" -lt 500 ]; then
+
+                                docker stop frontend-testing
+                                docker rm frontend-testing
+
+                            else
+
+                                docker logs frontend-testing || true
+
+                                docker stop frontend-testing || true
+                                docker rm frontend-testing || true
+
+                                docker compose up -d --no-build
+
+                                sleep 10
+
+                                OLD_HTTP_CODE=\\$(curl \
+                                    --max-time 10 \
+                                    -s \
+                                    -o /dev/null \
+                                    -w '%{http_code}' \
+                                    http://localhost:3000 || true)
+
+                                if [ \\\"\\$OLD_HTTP_CODE\\\" -lt 100 ] || [ \\\"\\$OLD_HTTP_CODE\\\" -ge 500 ]; then
+                                    docker logs wayshub-frontend || true
+                                fi
+
+                                exit 1
                             fi
-
-                            exit 1
-                        fi
-
-                        EOF
+                        "
                     '''
                 }
             }
@@ -113,14 +106,12 @@ pipeline {
             steps {
                 sshagent(['server-frontend']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" << EOF
-                        set -e
+                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
+                            set -e
+                            cd '$FRONTEND_DIRECTORY'
 
-                        cd "$FRONTEND_DIRECTORY"
-
-                        docker compose build
-
-                        EOF
+                            docker compose build
+                        "
                     '''
                 }
             }
@@ -130,15 +121,13 @@ pipeline {
             steps {
                 sshagent(['server-frontend']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" << EOF
-                        set -e
+                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
+                            set -e
+                            cd '$FRONTEND_DIRECTORY'
 
-                        cd "$FRONTEND_DIRECTORY"
-
-                        docker compose push
-
-                        EOF
-                    }
+                            docker compose push
+                        "
+                    '''
                 }
             }
         }
@@ -147,28 +136,26 @@ pipeline {
             steps {
                 sshagent(['server-frontend']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" << EOF
-                        set -e
+                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
+                            set -e
+                            cd '$FRONTEND_DIRECTORY'
 
-                        cd "$FRONTEND_DIRECTORY"
+                            docker compose up -d --no-build
 
-                        docker compose up -d --no-build
+                            sleep 10
 
-                        sleep 10
+                            HTTP_CODE=\\$(curl \
+                                --max-time 10 \
+                                -s \
+                                -o /dev/null \
+                                -w '%{http_code}' \
+                                http://localhost:3000 || true)
 
-                        HTTP_CODE=\$(curl \
-                            --max-time 10 \
-                            -s \
-                            -o /dev/null \
-                            -w "%{http_code}" \
-                            http://localhost:3000 || true)
-
-                        if [ "\$HTTP_CODE" -lt 100 ] || [ "\$HTTP_CODE" -ge 500 ]; then
-                            docker logs wayshub-frontend || true
-                            exit 1
-                        fi
-
-                        EOF
+                            if [ \\\"\\$HTTP_CODE\\\" -lt 100 ] || [ \\\"\\$HTTP_CODE\\\" -ge 500 ]; then
+                                docker logs wayshub-frontend || true
+                                exit 1
+                            fi
+                        "
                     '''
                 }
             }
