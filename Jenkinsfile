@@ -44,27 +44,21 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
                         cd ${FRONTEND_DIRECTORY}
 
-                        echo "Menjalankan container untuk testing..."
+                        docker run --rm -d \\
+                            --name frontend-testing \\
+                            -p 3000:3000 \\
+                            wayshub-frontend:latest
 
-                        docker compose up -d
-
-                        echo "Menunggu aplikasi berjalan..."
                         sleep 10
 
-                        echo "Testing frontend menggunakan wget..."
-
-                        wget --spider --timeout=10 http://localhost:3000
-
-                        if [ \$? -eq 0 ]; then
-                            echo "Testing berhasil."
+                        if wget --spider --timeout=10 http://localhost:3000; then
+                            :
                         else
-                            echo "Testing gagal."
-                            docker compose down
+                            docker stop frontend-testing || true
                             exit 1
                         fi
 
-                        echo "Menghentikan container testing..."
-                        docker compose down
+                        docker stop frontend-testing
 
                         exit
                         EOF
@@ -123,4 +117,3 @@ pipeline {
         }
     }
 }
-
