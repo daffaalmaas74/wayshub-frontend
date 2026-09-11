@@ -23,22 +23,6 @@ pipeline {
             }
         }
 
-        stage('Build Image Testing') {
-            steps {
-                sshagent(['server-frontend']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
-                            set -e
-                            cd '$FRONTEND_DIRECTORY'
-                            docker build \
-                                -t daffaalmaas74/wayshub-frontend:testing \
-                                .
-                        "
-                    '''
-                }
-            }
-        }
-
         stage('Testing') {
             steps {
                 sshagent(['server-frontend']) {
@@ -46,6 +30,10 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
                             set -e
                             cd '$FRONTEND_DIRECTORY'
+
+                            docker build \
+                                -t daffaalmaas74/wayshub-frontend:testing \
+                                .
 
                             docker compose down
 
