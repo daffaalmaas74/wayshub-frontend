@@ -91,7 +91,6 @@ pipeline {
                     sh """
                         ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
                         cd ${FRONTEND_DIRECTORY}
-                        docker compose down
                         docker compose up -d
                         exit
                         EOF
