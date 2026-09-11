@@ -125,7 +125,7 @@ pipeline {
                             set -e
                             cd '$FRONTEND_DIRECTORY'
 
-                            docker compose push daffaalmaas74/wayshub-frontend:development
+                            docker compose push frontend
                         "
                     '''
                 }
