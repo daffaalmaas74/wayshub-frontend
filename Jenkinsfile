@@ -46,7 +46,7 @@ pipeline {
 
                         docker run --rm -d \\
                             --name frontend-testing \\
-                            -p 3000:3000 \\
+                            -p 3001:3000 \\
                             daffaalmaas74/wayshub-frontend:development
 
                         sleep 10
