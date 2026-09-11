@@ -9,7 +9,7 @@ pipeline {
 
     stages {
 
-        stage('Pull Code Baru') {
+        stage('Pull Code') {
             steps {
                 sshagent(['server-frontend']) {
                     sh '''
@@ -76,7 +76,7 @@ pipeline {
             }
         }
 
-        stage('Build Image Development') {
+        stage('Build') {
             steps {
                 sshagent(['server-frontend']) {
                     sh '''
@@ -90,7 +90,7 @@ pipeline {
             }
         }
 
-        stage('Push ke Registry') {
+        stage('Push Registry') {
             steps {
                 sshagent(['server-frontend']) {
                     sh '''
