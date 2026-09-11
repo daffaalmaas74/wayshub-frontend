@@ -12,13 +12,13 @@ pipeline {
         stage('pull code baru') {
             steps {
                 sshagent(['server-frontend']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
-                        cd ${FRONTEND_DIRECTORY}
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" << EOF
+                        cd "$FRONTEND_DIRECTORY"
                         git pull origin master
                         exit
                         EOF
-                    """
+                    '''
                 }
             }
         }
@@ -26,13 +26,13 @@ pipeline {
         stage('build aplikasi') {
             steps {
                 sshagent(['server-frontend']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
-                        cd ${FRONTEND_DIRECTORY}
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" << EOF
+                        cd "$FRONTEND_DIRECTORY"
                         docker compose build
                         exit
                         EOF
-                    """
+                    '''
                 }
             }
         }
@@ -40,18 +40,19 @@ pipeline {
         stage('testing') {
             steps {
                 sshagent(['server-frontend']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
-                        cd ${FRONTEND_DIRECTORY}
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" << EOF
+                        cd "$FRONTEND_DIRECTORY"
 
                         docker compose down
 
-                        docker run --rm -d \\
-                            --name frontend-testing \\
-                            -p 3000:3000 \\
+                        docker run --rm -d \
+                            --name frontend-testing \
+                            --network daffaalmaas \
+                            -p 3000:3000 \
                             daffaalmaas74/wayshub-frontend:development
 
-                        if [ \$? -ne 0 ]; then
+                        if [ $? -ne 0 ]; then
                             exit 1
                         fi
 
@@ -66,7 +67,7 @@ pipeline {
 
                         exit
                         EOF
-                    """
+                    '''
                 }
             }
         }
@@ -74,13 +75,13 @@ pipeline {
         stage('push ke registry') {
             steps {
                 sshagent(['server-frontend']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
-                        cd ${FRONTEND_DIRECTORY}
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" << EOF
+                        cd "$FRONTEND_DIRECTORY"
                         docker compose push
                         exit
                         EOF
-                    """
+                    '''
                 }
             }
         }
@@ -88,13 +89,13 @@ pipeline {
         stage('deploy') {
             steps {
                 sshagent(['server-frontend']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${FRONTEND_SERVER} << EOF
-                        cd ${FRONTEND_DIRECTORY}
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" << EOF
+                        cd "$FRONTEND_DIRECTORY"
                         docker compose up -d
                         exit
                         EOF
-                    """
+                    '''
                 }
             }
         }
