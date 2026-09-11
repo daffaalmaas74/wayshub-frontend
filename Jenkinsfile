@@ -15,9 +15,7 @@ pipeline {
                     sh '''
                         ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
                             set -e
-
                             cd '$FRONTEND_DIRECTORY'
-
                             git pull origin master
                         "
                     '''
@@ -31,9 +29,7 @@ pipeline {
                     sh '''
                         ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
                             set -e
-
                             cd '$FRONTEND_DIRECTORY'
-
                             docker build \
                                 -t daffaalmaas74/wayshub-frontend:testing \
                                 .
@@ -49,26 +45,20 @@ pipeline {
                     sh '''
                         ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
                             set -e
-
                             cd '$FRONTEND_DIRECTORY'
 
-                            # Stop production container sementara
                             docker compose down
 
-                            # Bersihkan container testing jika masih ada
                             docker rm -f frontend-testing 2>/dev/null || true
 
-                            # Jalankan image testing
                             docker run -d \
                                 --name frontend-testing \
                                 --network daffaalmaas \
                                 -p 3000:3000 \
                                 daffaalmaas74/wayshub-frontend:testing
 
-                            echo 'Waiting for frontend testing...'
                             sleep 15
 
-                            # Health check menggunakan wget
                             if wget \
                                 --timeout=10 \
                                 --tries=1 \
@@ -76,21 +66,17 @@ pipeline {
                                 -O /dev/null \
                                 http://localhost:3000; then
 
-                                echo 'Frontend testing SUCCESS'
-
                                 docker stop frontend-testing
                                 docker rm frontend-testing
+                                docker rmi daffaalmaas74/wayshub-frontend:testing
 
                             else
-
-                                echo 'Frontend testing FAILED'
 
                                 docker logs frontend-testing || true
 
                                 docker stop frontend-testing || true
                                 docker rm frontend-testing || true
-
-                                echo 'Starting previous production container...'
+                                docker rmi daffaalmaas74/wayshub-frontend:testing || true
 
                                 docker compose up -d --no-build
 
@@ -108,9 +94,7 @@ pipeline {
                     sh '''
                         ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
                             set -e
-
                             cd '$FRONTEND_DIRECTORY'
-
                             docker compose build
                         "
                     '''
@@ -124,9 +108,7 @@ pipeline {
                     sh '''
                         ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
                             set -e
-
                             cd '$FRONTEND_DIRECTORY'
-
                             docker compose push frontend
                         "
                     '''
@@ -140,9 +122,7 @@ pipeline {
                     sh '''
                         ssh -o StrictHostKeyChecking=no "$FRONTEND_SERVER" "
                             set -e
-
                             cd '$FRONTEND_DIRECTORY'
-
                             docker compose up -d --no-build
                         "
                     '''
